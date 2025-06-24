@@ -3,19 +3,24 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'tarun63/simple-java-app'
-        IMAGE_TAG  = 'latest'
+        IMAGE_TAG  = "${BUILD_NUMBER}"
     }
 
     stages {
-        stage('Build with Maven') {
-            agent {
-                docker {
-                    image 'maven:3.8.1-adoptopenjdk-11'
-                    args '-v $HOME/.m2:/root/.m2'
-                }
-            }
+        stage('Checkout') {
             steps {
-                sh 'mvn clean package'
+                checkout scm
+            }
+        }
+
+        stage('Build with Maven') {
+            steps {
+                script {
+                    docker.image('maven:3.8.1-adoptopenjdk-11').inside {
+                        sh 'mvn clean package'
+                        sh 'ls -lh target/' // Optional
+                    }
+                }
             }
         }
 
@@ -31,6 +36,12 @@ pipeline {
                     sh 'docker push $IMAGE_NAME:$IMAGE_TAG'
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
         }
     }
 }
