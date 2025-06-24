@@ -40,8 +40,9 @@ pipeline {
     }
 
     post {
-        always {
-            cleanWs()
-        }
+    always {
+        deleteDir()
     }
+}
+
 }
